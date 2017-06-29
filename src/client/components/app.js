@@ -3,51 +3,69 @@ import "./app.scss";
 import React, {Component} from "react";
 import ReactPoint from 'react-point';
 
-class AutoShrinkingtext extends Comment {
-	state = {
-		scale: 1
-	}
+class AutoScalingText extends React.Component {
+  state = {
+    scale: 1
+  }
 
-	componentDidUpdate() {
-		const { scale } = this.state;
+  componentDidUpdate() {
+    const { scale } = this.state;
 
-		const node = this.node;
-		const { offsetWidth } = node;
-		const parentWidth = node.offsetParent.offsetWidth;
-		const actualWidth = offsetWidth / parentWidth;
-		const actualScale = availableWidth / actualWidth;
+    const node = this.node;
+    const parentNode = node.parentNode;
 
-		if (scale === actualScale)
-			return;
+    const availableWidth = parentNode.offsetWidth;
+    const actualWidth = node.offsetWidth;
+    const actualScale = availableWidth / actualWidth;
 
-		if (scale < 1) {
-			this.setState({ scale: actualScale});
-		} else if (scale < 1) { 
-			this.setState({ scale: 1 });
-		}
-	}
+    if (scale === actualScale)
+      return;
 
-	render() {
-		const { scale } = this.scale;
-		return (
-			<div {...this.props}
-				style={{transform: `scale(${scale}. ${scale})`}}
-				ref={node => this.node = node}/>
-		);
-	}
+    if (actualScale < 1) {
+      this.setState({ scale: actualScale });
+    } else if (scale < 1) {
+      this.setState({ scale: 1 });
+    }
+  }
+
+  render() {
+    const { scale } = this.state;
+
+    return (
+      <div
+        className="auto-scaling-text"
+        style={{ transform: `scale(${scale},${scale})` }}
+        ref={node => this.node = node}
+      >{this.props.children}</div>
+    );
+  }
+}
+
+class CalculatorDisplay extends React.Component {
+  render() {
+    const { value, ...props } = this.props;
+
+    const language = navigator.language || 'en-US';
+    let formattedValue = parseFloat(value).toLocaleString(language, {
+      useGrouping: true,
+      maximumFractionDigits: 6
+    })
+
+    // Add back missing .0 in e.g. 12.0
+    const match = value.match(/\.\d*?(0*)$/);
+
+    if (match)
+      formattedValue += (/[1-9]/).test(match[0]) ? match[1] : match[0];
+
+    return (
+      <div {...props} className="calculator-display">
+        <AutoScalingText>{formattedValue}</AutoScalingText>
+      </div>
+    );
+  }
 }
 
 class AppContainer extends Component {
-
-	// constructor(props) {
-	// 	super(props);
-	// 	this.state = {
-	// 		displayValue: '0',
-	// 		waitingForOperand: false,
-	// 		operator: null
-	// 	};
-	// }
-
 	state = {
 		value: null,
 		displayValue: '0',
@@ -149,7 +167,7 @@ class AppContainer extends Component {
     return (
 			<div id="wrapper">
 				<div className="calculator">
-					<div className="calculator-display">{displayValue}</div>
+					<CalculatorDisplay value={displayValue}/>
 					<div className="calculator-keypad">
 						<div className="input-keys">
 							<div className="function-keys">
