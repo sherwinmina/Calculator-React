@@ -8,12 +8,17 @@ class AppContainer extends Component {
 	// constructor(props) {
 	// 	super(props);
 	// 	this.state = {
-	// 		displayValue: '0'
+	// 		displayValue: '0',
+	// 		waitingForOperand: false,
+	// 		operator: null
 	// 	};
 	// }
 
 	state = {
-		displayValue: '0'
+		value: 0,
+		displayValue: '0',
+		waitingForOperand: false,
+		operator: null
 	}
 
 	clearDisplay() {
@@ -23,19 +28,33 @@ class AppContainer extends Component {
 	}
 
 	inputDigit(digit) {
-		const { displayValue } = this.state;
+		const { displayValue, waitingForOperand } = this.state;
 
-		this.setState({ 
-			displayValue: displayValue === '0' ? String(digit) : displayValue + digit
-		});
+		if (waitingForOperand) {
+			this.setState({ 
+				displayValue: String(digit),
+				waitingForOperand: false
+			});
+		} else {
+			this.setState({
+				displayValue: displayValue === '0' ? String(digit) : displayValue + digit
+			});
+		}
+		
 	}
 
 	inputDot() {
-		const { displayValue } = this.state;
+		const { displayValue, waitingForOperand } = this.state;
 
-		if (displayValue.indexOf('.') === -1) {
+		if (waitingForOperand) {
 			this.setState({
-				displayValue: displayValue + '.'
+				displayValue: '.',
+				waitingForOperand: false
+			});
+		} else if (displayValue.indexOf('.') === -1) {
+			this.setState({
+				displayValue: displayValue + '.',
+				waitingForOperand: false
 			});
 		}
 	}
@@ -57,9 +76,44 @@ class AppContainer extends Component {
 		});
 	}		
 
+	performOperation(nextOperator) {
+		const { displayValue, operator, value } = this.state;
+		const nextValue = parseFloat(displayValue);
+
+		const operations = {
+			'/': (prevValue, nextValue) => prevValue / nextValue,
+			'*': (prevValue, nextValue) => prevValue * nextValue,
+			'+': (prevValue, nextValue) => prevValue + nextValue,
+			'-': (prevValue, nextValue) => prevValue - nextValue,
+			'=': (prevValue, nextValue) => prevValue = nextValue
+		};
+
+		if (value === null) {
+			this.setState({
+				value: nextValue
+			});
+		} else if (operator) {
+			const currentValue = value || 0;
+			const computedValue = operations[operator](currentValue, nextValue);
+			
+			this.setState({
+				value: computedValue,
+				displayValue: String(computedValue)
+			});
+		}
+		// const prevValue = 
+
+		const computedValue = operations[operator](prevValue, nextValue);
+
+		this.setState({
+			waitingForOperand: true, 
+			operator: nextOperator
+		});
+	}
+
   render() {
 		const { displayValue } = this.state;
-		console.log(displayValue);
+		console.log(this.state);
 
     return (
 			<div id="wrapper">
@@ -87,11 +141,11 @@ class AppContainer extends Component {
 							</div>
 						</div>
 						<div className="operator-keys">
-							<button className="calculator-key key-divide">÷</button>
-							<button className="calculator-key key-multiply">×</button>
-							<button className="calculator-key key-subtract">−</button>
-							<button className="calculator-key key-add">+</button>
-							<button className="calculator-key key-equals">=</button>
+							<button className="calculator-key key-divide" onClick={() => this.performOperation('/')}>÷</button>
+							<button className="calculator-key key-multiply" onClick={() => this.performOperation('*')}>×</button>
+							<button className="calculator-key key-subtract" onClick={() => this.performOperation('-')}>−</button>
+							<button className="calculator-key key-add" onClick={() => this.performOperation('+')}>+</button>
+							<button className="calculator-key key-equals" onClick={() => this.performOperation('=')}>=</button>
 						</div>
 					</div>
 				</div>
