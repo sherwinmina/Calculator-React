@@ -3,6 +3,40 @@ import "./app.scss";
 import React, {Component} from "react";
 import ReactPoint from 'react-point';
 
+class AutoShrinkingtext extends Comment {
+	state = {
+		scale: 1
+	}
+
+	componentDidUpdate() {
+		const { scale } = this.state;
+
+		const node = this.node;
+		const { offsetWidth } = node;
+		const parentWidth = node.offsetParent.offsetWidth;
+		const actualWidth = offsetWidth / parentWidth;
+		const actualScale = availableWidth / actualWidth;
+
+		if (scale === actualScale)
+			return;
+
+		if (scale < 1) {
+			this.setState({ scale: actualScale});
+		} else if (scale < 1) { 
+			this.setState({ scale: 1 });
+		}
+	}
+
+	render() {
+		const { scale } = this.scale;
+		return (
+			<div {...this.props}
+				style={{transform: `scale(${scale}. ${scale})`}}
+				ref={node => this.node = node}/>
+		);
+	}
+}
+
 class AppContainer extends Component {
 
 	// constructor(props) {
