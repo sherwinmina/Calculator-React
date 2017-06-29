@@ -15,7 +15,7 @@ class AppContainer extends Component {
 	// }
 
 	state = {
-		value: 0,
+		value: null,
 		displayValue: '0',
 		waitingForOperand: false,
 		operator: null
@@ -101,10 +101,7 @@ class AppContainer extends Component {
 				displayValue: String(computedValue)
 			});
 		}
-		// const prevValue = 
-
-		const computedValue = operations[operator](prevValue, nextValue);
-
+		
 		this.setState({
 			waitingForOperand: true, 
 			operator: nextOperator
